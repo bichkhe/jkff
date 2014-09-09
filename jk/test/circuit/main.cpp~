@@ -1,0 +1,92 @@
+#include <vector>
+#include <string>
+#include "../../src/circuit/stl.h"
+#include <thread>
+#include <stdio.h>
+#include <mutex>
+//#include <lock_guard>
+using namespace std;
+
+class JKThread
+{
+public:
+  JKThread(){std::cout<< "JK Thread constructor!"<<std::endl;}
+  JKThread(const JKThread& jk)
+  {
+    std::cout <<"JK Thread Copy Constructor! ..." <<std::endl;
+  }
+  void operator()()
+  {
+    std::cout << "From t1";
+  }
+  void test(int i)
+  {
+    // std::lock_guard<std::mutex> guard(mu);
+    for (int i =0; i<100; i++)
+	{
+	  std::cout << "From t1: " << i<<std::endl;
+	}
+  }
+  template <typename F>
+  void process_data(F f)
+  {
+    std::lock_guard<std::mutex> guard(mu);
+    f(mArray);
+  }
+  
+
+private:
+  std::mutex mu;
+  JKArray mArray;
+
+};
+
+
+int gI =10;
+static int gL= 20;
+
+
+
+int main(const int argc, char* argv[], char* env[])
+{
+
+  std::cout << &gI;
+  std::cout << &gL;
+
+  JKArray jk;
+  jk.AddBook("Run Away");
+  int m =10;
+  int k =20;
+  
+  std::cout << &m <<std::endl;
+  std::cout << &k<<std::endl;
+  int z =jk.getPeople(m);
+  std::cout << &z<<std::endl;
+  std::cout <<"Z----------------:"<< z <<std::endl;
+  JKThread jkthread ;
+  std::cout << &jk <<" "<< &(jk.i)<<std::endl ;
+  char* name = "Hello world";
+  std:cout <<"Name:" << name <<std::endl;
+  std::cout<< 'Address:' << &name<<std::endl;
+  
+  void (JKArray::* pFunc)(const string&) = &JKArray::AddBook;
+  void* pPtr = (void*&) pFunc; // this works
+
+  std::thread t1 ((JKThread()));
+  std::cout << "--" << &pPtr <<std::endl;
+  try 
+    {
+      for (int i =0; i<100; i++)
+	{
+	  std::cout << "From main: " << i<<std::endl;
+	}
+  
+    }
+  catch (...)
+    {
+      t1.join();
+      throw;
+    }
+  t1.join();
+  return 0;
+}
